@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gillario â€” TasarÄ±m GÃ¶rselleri (2026-10-26)</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b22; --line:#2a313b; --txt:#e6edf3; --dim:#9aa7b4;
+    --accent:#c9a227; --sel:#2ea043;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.5 "Segoe UI",system-ui,-apple-system,sans-serif}
+  header{position:sticky;top:0;z-index:20;background:rgba(14,17,22,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:12px 16px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  h1{font-size:15px;margin:0;font-weight:600;letter-spacing:.2px}
+  h1 span{color:var(--accent)}
+  .muted{color:var(--dim);font-size:12px}
+  input[type=search]{flex:1;min-width:200px;background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:8px 12px;outline:none}
+  input[type=search]:focus{border-color:var(--accent)}
+  button{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:8px 12px;cursor:pointer;font-size:13px}
+  button:hover{border-color:var(--accent);color:var(--accent)}
+  button.primary{background:var(--sel);border-color:var(--sel);color:#fff;font-weight:600}
+  button.primary:hover{color:#fff;filter:brightness(1.08)}
+  .bar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(22,27,34,.97);border-top:1px solid var(--line);padding:10px 16px;display:none}
+  .bar.on{display:block}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;padding:16px 16px 90px}
+  .card{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;cursor:zoom-in;transition:border-color .15s,transform .1s}
+  .card:hover{border-color:var(--accent)}
+  .card.selected{border-color:var(--sel);box-shadow:0 0 0 2px rgba(46,160,67,.35) inset}
+  .card img{display:block;width:100%;height:220px;object-fit:cover;background:#0a0d12}
+  .name{padding:8px 10px;font-size:11px;color:var(--dim);word-break:break-all;font-family:ui-monospace,Consolas,monospace}
+  .card.selected .name{color:var(--sel)}
+  .chk{position:absolute;top:8px;left:8px;width:22px;height:22px;border-radius:6px;background:rgba(0,0,0,.6);border:2px solid #fff9;display:grid;place-items:center;cursor:pointer;z-index:2}
+  .card.selected .chk{background:var(--sel);border-color:var(--sel)}
+  .chk::after{content:"";width:10px;height:6px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translateY(-1px);opacity:0}
+  .card.selected .chk::after{opacity:1}
+  .idx{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.65);color:#fff;font-size:11px;padding:2px 7px;border-radius:6px;z-index:2}
+  dialog#lb{padding:0;border:0;background:transparent;max-width:100vw;max-height:100vh}
+  dialog#lb::backdrop{background:rgba(0,0,0,.92)}
+  .lbwrap{display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px}
+  .lbwrap img{max-width:94vw;max-height:80vh;object-fit:contain;border-radius:8px;background:#000}
+  .lbinfo{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center;color:#cbd5e1;font-size:12px;font-family:ui-monospace,Consolas,monospace}
+  .toast{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);background:var(--sel);color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:40}
+  .toast.on{opacity:1}
+  empty{}
+</style>
+</head>
+<body>
+<header>
+  <div class="row">
+    <h1>Gillario <span>Â·</span> TasarÄ±m GÃ¶rselleri <span>2026-10-26</span></h1>
+    <span class="muted" id="stat">â€”</span>
+  </div>
+  <div class="row" style="margin-top:10px">
+    <input type="search" id="q" placeholder="Dosya adÄ±na gÃ¶re ara (Ã¶rn. exec-a1b2)">
+    <button id="all">TÃ¼mÃ¼nÃ¼ seÃ§</button>
+    <button id="none">SeÃ§imi temizle</button>
+    <button class="primary" id="copy">SeÃ§ilen linkleri kopyala</button>
+  </div>
+</header>
+
+<div class="grid" id="grid"></div>
+
+<div class="bar" id="bar">
+  <div class="row" style="justify-content:space-between">
+    <span><b id="cnt">0</b> gÃ¶rsel seÃ§ildi</span>
+    <span class="row">
+      <button id="openselected">SeÃ§ilenleri sÄ±rayla aÃ§</button>
+      <button class="primary" id="copy2">Linkleri kopyala</button>
+    </span>
+  </div>
+</div>
+
+<dialog id="lb">
+  <div class="lbwrap">
+    <img id="lbimg" alt="">
+    <div class="lbinfo">
+      <span id="lbname"></span>
+      <button id="prev">â† Ã–nceki</button>
+      <button id="next">Sonraki â†’</button>
+      <a id="lbraw" href="#" target="_blank" rel="noopener"><button>GitHub'da aÃ§</button></a>
+      <button id="close">Kapat (Esc)</button>
+    </div>
+  </div>
+</dialog>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const FILES = "exec-00b74541-24b1-4fed-9e52-8a684fa47670","exec-010c4a49-eb11-4c2a-8286-3dc96ad4da0b","exec-025c83ff-8ea4-4fb3-a2ec-83586ec2131e","exec-0847864d-3d1f-4cdd-8387-4aee5344f8b1","exec-08e4d158-8725-49f1-acea-8176f71b2c65","exec-0c02d9ec-711b-42d8-8f25-403a632786b3","exec-0d9fd0b2-4b51-49a3-a3e7-869bdc64d5fb","exec-0da5a12f-98a9-40ec-8f21-cde009b1ec29","exec-101ea058-e02c-4860-a391-a77e822dfdf8","exec-10e9a087-0feb-41e1-8307-947735407b6a","exec-10fe4ca4-51aa-4aae-a7d5-7c9a17dfe6fc","exec-11bfd2a7-d117-40ad-a021-224d218baf34","exec-1262643e-75bb-4e24-97e3-fa7c4c0b9533","exec-130b89ee-f894-4ead-8d25-5bfd6bb6bdd8","exec-131e911c-0271-4c5b-ad29-e29b9a671437","exec-15e7787d-f11c-4c2e-9e4d-851ffcf33114","exec-15f1a17a-2746-4ce7-85b8-6c511a7efa7d","exec-1608b105-6eeb-4d69-a444-20298e31b957","exec-16848ab4-3a5c-46da-b693-18eed8ae64d4","exec-171fcfc7-2b11-4784-8391-4f216d3d451c","exec-1b36890b-2488-4aa3-9054-ecad9a5df386","exec-1bb913a6-d12e-4def-addf-7ef01862d5fb","exec-1c0a031c-9d6c-4ef4-ba2b-9c09ad0a80d2","exec-1d8c1f37-2ca5-4da2-92cf-ab1358f2001c","exec-1e24c652-ae37-4dfd-a525-39ce3a707a8a","exec-1f806637-3832-4066-8e58-193b4494ea37","exec-238c1985-3515-497f-9ee8-24aec76c86e6","exec-271aff2f-1237-4cf4-92c5-eaf78241e5be","exec-27433869-3f49-4133-a4f9-0a195ee88f6f","exec-27f059d7-959a-4ac1-8383-a10da52bed1d","exec-28ec188c-cf84-4f50-92e0-598f42dbe740","exec-28fd52c1-6a39-4360-81c1-bd823fb501b6","exec-29cb589e-7759-4202-98c3-dd993f49c25d","exec-2afc21ab-8701-4917-a75b-c7b825519b5c","exec-2b6fd275-fa84-4db2-9895-9a4ba6a4be03","exec-2ca07ee6-9735-458c-9fc9-41b34ffa3bea","exec-2cb97dfc-d1ee-41d2-a593-934c361acc90","exec-2da14012-7f28-4c1f-8c66-09bdfc1eb4e1","exec-2dd1ffec-cd26-4766-9ec5-ab1b9c0e5bc0","exec-2f6afaa5-3b3f-4270-a8cf-93cb7df1a56a","exec-2fafeafe-64e9-4884-847e-4c2c50cb5f4a","exec-3000218f-4173-4c02-992d-2073e0ce61bf","exec-32c19161-cb12-4533-86fd-2cae7a83d7a7","exec-334875cb-9433-4053-ad13-01c42c5280b8","exec-339be90f-0b99-4f97-acf8-f20dbf7a47d8","exec-36201f04-93f0-497f-a1be-8846b0c0db60","exec-3623085b-462e-4fa7-9172-649a6d1eaf24","exec-364714f1-d920-4328-aa62-3f4b7169dd0c","exec-375770af-0906-4584-8262-1504f28b0aef","exec-383b8134-ab0e-4858-a684-99092b60e866","exec-3d94c5eb-f348-481d-a00c-3ca50009535d","exec-4197914c-140b-43d4-b68b-28fcb12926c4","exec-43fcee94-bfca-46be-aef2-4315ac7d53f8","exec-4462679c-f8ff-4a4a-9515-00b783c08ec3","exec-458664fc-a39c-4e4a-b589-f8b1e6ceff12","exec-4b2c216c-3357-49e9-bdc2-0e93353c06eb","exec-4ca2bd11-0b78-4674-a630-0ef146359986","exec-4e83e3b2-ed1f-40d0-aff6-b76be7e97f9f","exec-4eff6ba2-f0ee-4a5d-8a70-bc3316b1c33f","exec-4fcdc125-de65-41f8-944c-b357eceedae4","exec-510d0857-fc93-4eb6-ab1a-8e55b6b73f1f","exec-526d6c53-4f67-4bd3-b178-98a02fd3524f","exec-527253b9-c0e2-4ecb-bd68-1025b1d332d7","exec-533c3ee0-6e0f-47af-88d9-6922de706049","exec-53c5fcf1-95b7-4f46-89eb-b7f5adfec6d0","exec-53d5a6c1-9d58-4a26-b2b8-5005f469f82e","exec-54338ad6-4d87-4829-92d2-8a5d3ebad644","exec-555e088d-1711-4d0e-ba8a-7e4f48ca728b","exec-561ef4ef-334a-4044-b15e-d7ba4ae7e00c","exec-580d3a33-a439-4e7b-933e-59a59e9d043c","exec-58ad117a-b7c0-4588-92e9-85f8941cdcaa","exec-58c99a2b-24bd-480b-8409-869fea011b50","exec-58f8c6e8-0822-41c9-9ca0-b8f5643f1e49","exec-598c03c1-734e-45c1-a534-6dbc6d3bc304","exec-5ba2ce61-04cf-4725-8ccb-0d4f2676a789","exec-5d154f6c-b302-402e-ad3f-ea8024aea01d","exec-5f989159-32a9-4989-8bec-714779e411b6","exec-5fbf72de-690a-4674-bb8b-14cd796ef826","exec-6001fb1a-9b94-458e-9325-1f1d3b0f05d3","exec-60d67e7a-8d7b-4932-9894-ff9de380375e","exec-62957f16-d4c3-46d8-b13a-f8f8625c9679","exec-63006e79-76ab-4683-86c3-1de533a76e78","exec-63d4fe24-5fb2-4b3f-99e2-15084c439e1a","exec-6442741c-1e8a-4605-b8e4-02de7af932a3","exec-64bddafc-17fe-4db7-ade6-f2b71abac706","exec-64e2071a-0837-4990-a896-bf4a2d1493ad","exec-661721ac-9295-4b1c-b3ea-300d88667d3e","exec-6735074f-83ff-450e-8bb7-1d797624cda0","exec-688b7af4-c27f-4d97-b6d8-d3633b1703f2","exec-69fd8e18-4219-45dc-bcf1-0233c8f9acc6","exec-6e3f609c-8448-416d-a1fe-21e188c27f7d","exec-72d179b7-a0b1-4d9f-a5f1-f08ce81f393d","exec-7436858b-831c-4b3f-8f8c-f9fc55aa27de","exec-76821970-c3ed-48c7-8795-22e8566dc1ac","exec-76eff942-10bc-4698-8cd8-0d759b72129a","exec-770375dc-1278-4ae2-8633-f417e1fd2052","exec-79c35d75-72bc-40f0-9d2b-2e5682fe3286","exec-7a672e7c-f243-4ef7-bff4-f364f5f7626d","exec-7fb5e555-2aae-4cf5-b0ea-128176a7db94","exec-7fee2205-b524-486b-8e5f-d8471aa1332d","exec-83985a61-b021-47ed-9b02-2afa2ad37ca9","exec-83f64551-bbda-48c9-983a-4afc6e653590","exec-8676e118-0c65-4fab-9b4d-0cd22f40a2e1","exec-873779c0-0024-413c-b43f-dc48b3b7be1e","exec-884b0276-6171-4ee6-bb42-0e749bcc5e5e","exec-889194ea-d59d-4b3d-9809-859bb3f47b12","exec-8b3e2151-e0ae-4964-a8df-4c2c300fbcab","exec-8ba493c7-340a-4a8b-8283-773b3873aa56","exec-8cf8325c-d261-4f8a-ad4f-b2215dca618b","exec-8e39ddcc-9cb7-41cd-bd87-be9f057e08bb","exec-8e93f329-1719-47f7-9244-c2b5e4e6e9ee","exec-9040e057-1012-421b-af22-dfcc95928bad","exec-91c4b280-501c-494e-9f3a-75b851daf1ec","exec-92a8ff44-1619-4722-a217-285a3e99856a","exec-934d5de6-bc0f-426f-8a9e-3dc53c0ef1d5","exec-953472a0-3803-4a17-b5d7-c0c7f6de84bd","exec-963d2746-97c5-49c0-b6ea-31b9e87d926a","exec-970cff32-f65a-4aaf-9550-82911cf31627","exec-987c1001-9848-401a-a40d-4ee13d537bf9","exec-995e01ee-a0e9-4710-a189-f1544b299e79","exec-9a6b9a51-c3ef-49b4-ae46-6d895bf69fdc","exec-9c7ca030-d578-4cdd-8ff8-966cea2472fe","exec-9cfe4355-c883-4cb4-b86e-a9efd7efdedc","exec-9d076a45-0fd2-41c6-806c-dcde1ab010a1","exec-a053db37-0396-456f-8fc7-148f544f821c","exec-a0ae50d9-65b7-4160-9958-ebea0351315c","exec-a1629d6f-62d8-41d2-8001-1af6478475c2","exec-a3243115-c977-4b10-b717-ae0adbeb940e","exec-a4765730-e057-4f75-9272-0b6f31a90042","exec-a4dd10c7-feff-40a3-9a0f-5e1c3b3bd8ca","exec-a5938d4d-d776-4c36-9d95-463f35763403","exec-a715a42e-8a49-4d66-bc35-63c8b71c3db4","exec-a7905bd2-380e-4fe2-8729-1a92b7ad28ef","exec-a8736bb9-fcd0-481d-8c31-84f24303bcbd","exec-a9d315d8-d303-4015-8103-1ba6de253c38","exec-ab8612bb-a3fb-4cc2-a753-7758daac97c3","exec-ab92f860-391d-46ce-af64-a12bc44d5145","exec-ac650c34-9fc3-4633-9ef3-261b3592cead","exec-ae6a3dd9-8cfc-4c5b-82f4-8b9f7f8f5804","exec-b018b56f-2b87-4c80-8172-632f57f0f110","exec-b06fa9a7-afa8-4af6-a92c-0ccf42cd2859","exec-b0e5ed4f-65fc-4552-b316-d1df5cb2da18","exec-b6ff7fec-838a-4a30-bdd3-661329f046be","exec-b745884e-56d0-4d19-8ea4-4cb43436ca7d","exec-b7b9652e-5d49-44e8-aa19-9848a3e8c376","exec-b8253d60-f8d0-4f67-ab2c-359002475077","exec-b9f32f17-0df8-442a-a36e-6843b666aa21","exec-c347cb4e-9f46-47de-bfc3-5803d7330f33","exec-c3d4fd8c-b7be-43e1-9374-bb7e0d9eda46","exec-c54f1db0-ad9c-48a8-a61c-3d76f47af8d6","exec-c9d20e1b-bebe-4326-8c31-a52f46416413","exec-cbc0d269-ca97-4ba4-a92b-904d427ebb7a","exec-cc7aa47a-530f-4aed-9758-b2b705e8a84f","exec-d61cbf43-a5b2-48e5-99be-6127f850944c","exec-d891c731-5d25-44ba-8f61-8dd614de954f","exec-d975a1dd-d2b1-4d07-b309-c46643460fc0","exec-d9e6642c-4aec-4686-b8c2-d320d9d14c00","exec-dd26e4a5-c0b3-419c-a3d2-6e584d4a90c8","exec-de08e1fe-f57a-4581-920a-eb987c1b9d94","exec-df68a872-b300-4e62-aa0f-c175541c7f3b","exec-e2bc4895-be62-44b5-aaf5-777783e3fedd","exec-e5fe4065-7407-43df-a60c-536d8f7e143c","exec-e670d6ae-5300-4c23-b1ad-9025599bc746","exec-e75fb248-7f50-4c70-913e-c83577c34196","exec-e894a878-228f-480e-92ce-ccc5da21e50b","exec-e8e4d40c-c30d-4ced-bdf8-d76b169eda0b","exec-e936d733-77f5-406e-93af-cf514c1f1cd7","exec-ecb6f7b9-9d99-4411-b873-4a2043d61f94","exec-ee71e4a9-8fda-4787-89cb-be96a041a6c9","exec-efaed70e-71f9-4d2a-bef2-2c1b1075f03c","exec-f03360a3-563f-4492-b4e6-bb7c1e290e91","exec-f0569d1a-8594-482c-ba45-27b66df2e98a","exec-f4d5db91-9464-44fd-a253-36ab30253ada","exec-f5f581f5-c78c-40e8-8bc0-cc1ca2818ea2","exec-f7870694-a762-439a-acd4-b63b14d78b54","exec-f7abc45d-c5eb-431e-9b21-93e8903f6e1d","exec-f7e9662c-fc4d-4fae-846d-91b73482ab49","exec-f7ebf68b-88e7-47eb-88ff-54ed6f7d3f64","exec-f9ddcf1b-79c6-4aed-b0a9-715234e92d77","exec-fae27bff-cec3-414f-9074-cfc1c6b99ac2","exec-fb1f72f3-45b7-4dd0-b420-c23ff3ac74fb","exec-fc92857f-82bc-4b4d-8bf4-148b11e4082b","exec-fe53ba80-8fe8-4b21-b155-70f357731ba7","exec-feb942da-f8b1-43d6-b5e0-819704632ecd","exec-fee49542-035b-47f7-b791-75faafeff177";
+const RAW_BASE = "https://raw.githubusercontent.com/acar32furkan-glitch/gillario-product-images/main/design/2026-10-26/";
+const GH_BASE  = "https://github.com/acar32furkan-glitch/gillario-product-images/blob/main/design/2026-10-26/";
+
+const grid = document.getElementById('grid');
+const sel = new Set();
+let view = FILES.slice();
+let cur = -1;
+
+function reloadStat(){
+  document.getElementById('stat').textContent = FILES.length + " gÃ¶rsel Â· " + sel.size + " seÃ§ili";
+  document.getElementById('cnt').textContent = sel.size;
+  document.getElementById('bar').classList.toggle('on', sel.size > 0);
+}
+
+function card(name, i){
+  const el = document.createElement('div');
+  el.className = 'card' + (sel.has(name) ? ' selected' : '');
+  el.dataset.name = name;
+
+  const chk = document.createElement('div');
+  chk.className = 'chk';
+  chk.title = 'SeÃ§';
+  chk.addEventListener('click', e => { e.stopPropagation(); toggle(name, el); });
+
+  const idx = document.createElement('div');
+  idx.className = 'idx';
+  idx.textContent = (i + 1);
+
+  const img = document.createElement('img');
+  img.loading = 'lazy';
+  img.alt = name;
+  img.src = 'thumbs/' + name + '.jpg';
+  img.onerror = () => { img.onerror = null; img.src = name + '.png'; };
+
+  const nm = document.createElement('div');
+  nm.className = 'name';
+  nm.textContent = name;
+
+  el.append(chk, idx, img, nm);
+  el.addEventListener('click', () => openLb(i));
+  return el;
+}
+
+function render(){
+  grid.innerHTML = '';
+  view.forEach((n, i) => grid.appendChild(card(n, FILES.indexOf(n))));
+  reloadStat();
+}
+
+function toggle(name, el){
+  if (sel.has(name)) sel.delete(name); else sel.add(name);
+  if (el) el.classList.toggle('selected', sel.has(name));
+  reloadStat();
+}
+
+function openLb(i){
+  cur = i;
+  const n = FILES[i];
+  document.getElementById('lbimg').src = n + '.png';
+  document.getElementById('lbname').textContent = (i + 1) + ' / ' + FILES.length + ' â€” ' + n + '.png';
+  document.getElementById('lbraw').href = GH_BASE + n + '.png';
+  const d = document.getElementById('lb');
+  if (!d.open) d.showModal();
+}
+
+document.getElementById('lb').addEventListener('click', e => {
+  if (e.target.id === 'lb') e.currentTarget.close();
+});
+document.getElementById('close').onclick = () => document.getElementById('lb').close();
+document.getElementById('prev').onclick = () => openLb((cur - 1 + FILES.length) % FILES.length);
+document.getElementById('next').onclick = () => openLb((cur + 1) % FILES.length);
+document.addEventListener('keydown', e => {
+  const d = document.getElementById('lb');
+  if (!d.open) return;
+  if (e.key === 'Escape') d.close();
+  if (e.key === 'ArrowLeft') openLb((cur - 1 + FILES.length) % FILES.length);
+  if (e.key === 'ArrowRight') openLb((cur + 1) % FILES.length);
+});
+
+document.getElementById('q').addEventListener('input', e => {
+  const t = e.target.value.trim().toLowerCase();
+  view = t ? FILES.filter(n => n.toLowerCase().includes(t)) : FILES.slice();
+  render();
+});
+
+document.getElementById('all').onclick = () => { view.forEach(n => sel.add(n)); render(); };
+document.getElementById('none').onclick = () => { sel.clear(); render(); };
+
+function links(){
+  return Array.from(sel).sort().map(n => RAW_BASE + n + '.png').join('\n');
+}
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 1800);
+}
+function copyLinks(){
+  if (!sel.size) return alert('Ã–nce gÃ¶rsel seÃ§in.');
+  const txt = links();
+  navigator.clipboard.writeText(txt).then(() => toast(sel.size + ' link kopyalandÄ±'), () => {
+    const w = window.open('', '_blank');
+    w.document.write('<pre>' + txt.replace(/</g,'&lt;') + '</pre>');
+  });
+}
+document.getElementById('copy').onclick = copyLinks;
+document.getElementById('copy2').onclick = copyLinks;
+document.getElementById('openselected').onclick = () => {
+  if (!sel.size) return alert('Ã–nce gÃ¶rsel seÃ§in.');
+  if (!confirm(sel.size + ' gÃ¶rsel yeni sekmelerde aÃ§Ä±lacak. Devam?')) return;
+  Array.from(sel).sort().forEach(n => window.open(n + '.png', '_blank'));
+};
+
+// SeÃ§im ve sÄ±ralamayÄ± URL'de tutmadan basit baÅŸlangÄ±Ã§
+render();
+</script>
+</body>
+</html>
